@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011, Evan Leis
 #
 # Distributed under the terms of the Lesser GNU General Public License (LGPL)
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 '''
 Created on May 5, 2011
@@ -29,6 +29,7 @@ from kayako.objects.ticket import Ticket
 from kayako.objects.user import User
 
 log = logging.getLogger('kayako')
+
 
 class KayakoAPI(object):
     '''
@@ -442,7 +443,8 @@ class KayakoAPI(object):
         salt, b64signature = self._generate_signature()
 
         if method == 'GET':
-            url = '%s?e=%s&apikey=%s&salt=%s&signature=%s' % (self.api_url, urllib.quote(controller), urllib.quote(self.api_key), salt, urllib.quote(b64signature))
+            url = '%s?e=%s&apikey=%s&salt=%s&signature=%s' % (
+            self.api_url, urllib.quote(controller), urllib.quote(self.api_key), salt, urllib.quote(b64signature))
             # Append additional query args if necessary
             data = self._post_data(**self._sanitize_parameters(**parameters)) if parameters else None
             if data:
@@ -455,12 +457,13 @@ class KayakoAPI(object):
             parameters['salt'] = salt
             parameters['signature'] = b64signature
             data = self._post_data(**self._sanitize_parameters(**parameters))
-            request = urllib2.Request(url, data=data, headers={'Content-length' : len(data) if data else 0})
+            request = urllib2.Request(url, data=data, headers={'Content-length': len(data) if data else 0})
             request.get_method = lambda: method
-        elif method == 'DELETE': # DELETE
-            url = '%s?e=%s&apikey=%s&salt=%s&signature=%s' % (self.api_url, urllib.quote(controller), urllib.quote(self.api_key), salt, urllib.quote(b64signature))
+        elif method == 'DELETE':  # DELETE
+            url = '%s?e=%s&apikey=%s&salt=%s&signature=%s' % (
+            self.api_url, urllib.quote(controller), urllib.quote(self.api_key), salt, urllib.quote(b64signature))
             data = self._post_data(**self._sanitize_parameters(**parameters))
-            request = urllib2.Request(url, data=data, headers={'Content-length' : len(data) if data else 0})
+            request = urllib2.Request(url, data=data, headers={'Content-length': len(data) if data else 0})
             request.get_method = lambda: method
         else:
             raise KayakoRequestError('Invalid request method: %s not supported.' % method)
@@ -471,12 +474,12 @@ class KayakoAPI(object):
         try:
             response = urllib2.urlopen(request)
         except urllib2.HTTPError, error:
-            response_error = KayakoResponseError('%s: %s' % (error, error.read()))
-            log.error(response_error)
+            response_error = KayakoResponseError('%s: %s (%s)' % (error, url, data))
+            # log.error(response_error)
             raise response_error
         except urllib2.URLError, error:
             request_error = KayakoRequestError(error)
-            log.error(request_error)
+            # log.error(request_error)
             raise request_error
         return response
 
@@ -584,10 +587,10 @@ class KayakoAPI(object):
         
         '''
 
-
         return object.get(self, *args)
 
-    def ticket_search(self, query, ticketid=False, contents=False, author=False, email=False, creatoremail=False, fullname=False, notes=False, usergroup=False, userorganization=False, user=False, tags=False):
+    def ticket_search(self, query, ticketid=False, contents=False, author=False, email=False, creatoremail=False,
+                      fullname=False, notes=False, usergroup=False, userorganization=False, user=False, tags=False):
         ''' Search tickets in certain parameters for a given query.
         query               The Search Query
         ticketid=False      If True, then search the Ticket ID & Mask ID
@@ -602,18 +605,22 @@ class KayakoAPI(object):
         user=False          If True, then search the User (Full Name, Email)
         tags=False          If True, then search the Ticket Tags
         '''
-        response = self._request('/Tickets/TicketSearch', 'POST', query=query, ticketid=ticketid, contents=contents, author=author, email=email, creatoremail=creatoremail, fullname=fullname, notes=notes, usergroup=usergroup, userorganization=userorganization, user=user, tags=tags)
+        response = self._request('/Tickets/TicketSearch', 'POST', query=query, ticketid=ticketid, contents=contents,
+                                 author=author, email=email, creatoremail=creatoremail, fullname=fullname, notes=notes,
+                                 usergroup=usergroup, userorganization=userorganization, user=user, tags=tags)
         ticket_xml = etree.parse(response)
         return [Ticket(self, **Ticket._parse_ticket(self, ticket_tree)) for ticket_tree in ticket_xml.findall('ticket')]
 
     def user_search(self, query):
-	    response = self._request('/Base/UserSearch', 'POST', query=query)
-	    user_xml = etree.parse(response)
-	    return [User(self, **User._parse_user(user_tree)) for user_tree in user_xml.findall('user')]
+        response = self._request('/Base/UserSearch', 'POST', query=query)
+        user_xml = etree.parse(response)
+        return [User(self, **User._parse_user(user_tree)) for user_tree in user_xml.findall('user')]
 
     def ticket_search_full(self, query):
         ''' Shorthand for ticket_search(query, ticketid=True, contents=True, author=True, email=True, creatoremail=True, fullname=True, notes=True, usergroup=True, userorganization=True, user=True, tags=True) '''
-        return self.ticket_search(query, ticketid=True, contents=True, author=True, email=True, creatoremail=True, fullname=True, notes=True, usergroup=True, userorganization=True, user=True, tags=True)
+        return self.ticket_search(query, ticketid=True, contents=True, author=True, email=True, creatoremail=True,
+                                  fullname=True, notes=True, usergroup=True, userorganization=True, user=True,
+                                  tags=True)
 
     def __str__(self):
         return '<KayakoAPI: %s>' % self.api_url
